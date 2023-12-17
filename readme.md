@@ -17,19 +17,23 @@ _How-to mount DAB (Data API Builder) on SWA (Static Web Application) using AAD a
    ![Pre-requistie SWA](./Pictures/pic_02.png)
    
 2. Test connectivity 
-![Test SWA connectivity](./Pictures/pic_01.png)
+	![Test SWA connectivity](./Pictures/pic_01.png)
 
 
 ### Pre-requisite II: Prepare a Az SQL Database
 1. Deploy a Az Database 
+	![New Database](./Pictures/pic_05.png)
 
 2. Be sure that is Integrated with AAD authentication
+	![AAD Authentication](./Pictures/pic_03.png)
 
 3. Be sure that is under Firewall (no public IP)
+	![Database under Firewall](./Pictures/pic_04.png)
 
 4. Test connectivity. 
    (Very important that you access througth AAD authentication, and no SQL login / password)
-
+	![Database under Firewall](./Pictures/pic_06.png)
+	![Database under Firewall](./Pictures/pic_07.png)
 
 ## How-To
 
