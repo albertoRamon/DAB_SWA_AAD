@@ -1,12 +1,13 @@
-
+ [[_TOC_]]
+ 
 # How-To DAB (on SWA) using  AAD
 
 _How-to mount DAB (Data API Builder) on SWA (Static Web Application) using AAD authentication wiht Azure Database_
 
 
 ### Targets / Idea:
-* Az SQL DB must be under firewall (no public IP)
-* Microsoft  DAB must use AAD authentication with Az SQL DB
+1. Az SQL DB must be under firewall (no public IP)
+2. Microsoft  DAB must use AAD authentication with Az SQL DB
 
 
 ![Idea architecture](./pictures/pic_00.png)
@@ -16,9 +17,10 @@ _How-to mount DAB (Data API Builder) on SWA (Static Web Application) using AAD a
 
 1. Deploy a new SWA
    Reference: [Quickstart: Build your first static web app](https://github.com/staticwebdev/vanilla-basic/generate)
+   ![Pre-requistie SWA](./pictures/pic_02.png)
    
 2. Test connectivity 
-
+![Test SWA connectivity](./pictures/pic_01.png)
 
 ### Pre-requisite II: Prepare a Az SQL Database
 1. Deploy a Az Database 
