@@ -230,9 +230,11 @@ In my case the URL is:
 
 ```bash 
 https://wonderful-meadow-0e9203e03.4.azurestaticapps.net/data-api/Book
+https://wonderful-meadow-0e9203e03.4.azurestaticapps.net/data-api/api/Book
 ```
 
-**I have this error**
+**I have this error:**
+
    ![Test Connectivity](./Pictures/pic_31.png)
 
 
