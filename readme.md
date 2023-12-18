@@ -199,7 +199,7 @@ Now, yes . . . We are ready to play with Data API Builder !!
 ```bash
 dab add Book -c "staticwebapp.database.config.json" --source dbo.books --permissions "anonymous:*"
 ```
-   ![Test Connectivity](./Pictures/pic_26.png)
+   ![Test Connectivity](./Pictures/pic_27.png)
    
   The result file must be similar to this [V00.json](./JSON_Examples/V00.json)
 
@@ -220,9 +220,20 @@ In my case will be:
    
 **Need pull the changes to GitHub, before run the next point**
 
-4. Configure SWA > DB Connection 
+   ![Test Connectivity](./Pictures/pic_29.png)
+
+4. Configure SWA > Database connection 
+   ![Test Connectivity](./Pictures/pic_30.png)
 
 5. Test Rest API
+In my case the URL is:
+
+```bash 
+https://wonderful-meadow-0e9203e03.4.azurestaticapps.net/data-api/Book
+```
+
+**I have this error**
+   ![Test Connectivity](./Pictures/pic_31.png)
 
 
 # Next Steps
