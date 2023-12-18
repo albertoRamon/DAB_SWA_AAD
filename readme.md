@@ -218,14 +218,14 @@ In my case will be:
 
    ![Test Connectivity](./Pictures/pic_28.png)
    
-Need pull the changes to GitHub, before run the next point
+**Need pull the changes to GitHub, before run the next point**
 
-4. Configure SWA / DB Connection 
+4. Configure SWA > DB Connection 
 
 5. Test Rest API
 
 
-# Future
+# Next Steps
 * How-to integrate AAD authentication into DAB authentication
    This manual works with public API.
    
