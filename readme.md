@@ -77,6 +77,7 @@ Because Az DB is doesn't have a public IP, we need interconnect DAB and Az DB us
 
 2. Create Endpoint for Az SWA:
 	Use Private endpoint is not compatible with the Free plan
+	REFERENCE: [Configure private endpoint in Azure Static Web Apps](https://learn.microsoft.com/en-us/azure/static-web-apps/private-endpoint)
 
    ![Test Connectivity](./Pictures/pic_13.png)
 	
@@ -95,18 +96,41 @@ Because Az DB is doesn't have a public IP, we need interconnect DAB and Az DB us
 3. Check that both Private endpoints appear in the PLINK SNet:
 
    ![Test Connectivity](./Pictures/pic_16.png)
+   
+4. Check (again) SWA connectivity.
+	By default when you activate SWA's Private Endpoints, only will be accesible using Private IP, thus you will see something like this:
+	
+   ![Test Connectivity](./Pictures/pic_20.png)	
+   
+   There are 2 solutions:
+   
+   * Use a VPN + Private DNS resolution
+   * Create an Az VM, and connect to SWA using private IP (the DNS must be able to solve the name to the private DNS directly)
 
-### 2. How-To: Database Authentication
-1. Enable System Management Identity in SWA
+	You must see this:
+	
+	![Test Connectivity](./Pictures/pic_22.png)	
+ 
+ 
+### 2. How-To: Database Authentication  (System MI)
 
-2. Grant Read permission to SWA on DB schema
+1. Enable System Management Identity on Az SWA
+   ![System MI on SWA](./Pictures/pic_21.png)	
 
-### 3. How-To: Authentication (System MI)
-We need Grant permissions to Az SWA on Az SQL DB tables
 
-1. Enable System Managed Identity (System MI) on Az SWA 
+2. Grant Read permission to SWA on Az SQL DB using T-SQL
+```sql
+--- Create an SQL user, that point the the System Managed Identity
+-----------------------------------------------------------------
+	CREATE USER [SWA-DWH-01] FROM EXTERNAL PROVIDER; 
+	GO
 
-2. Grant permission ussing T-SQL
+--- Grant permissions to this SQL User
+---   For now only Read at level access
+-----------------------------------------------------------------
+	ALTER ROLE [db_datareader] ADD MEMBER [SWA-DWH-01]; 
+	GO
+```
 
 
 
@@ -116,6 +140,7 @@ To check that the DB's private endpoint works and Database authentication with S
    ![Test Connectivity](./Pictures/pic_18.png)
 
 TIP: Is necesary access to this VM using AAD? No, but would be recomended for security reasons
+REFERENCE: [Tutorial: Use a Windows VM system-assigned managed identity to access Azure SQL](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/tutorial-windows-vm-access-sql)
 
 1. Create a VM and Install SSMS [Download](https://learn.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms?view=sql-server-ver16#download-ssms)
 
@@ -128,19 +153,72 @@ TIP: Is necesary access to this VM using AAD? No, but would be recomended for se
   ![Test Connectivity](./Pictures/pic_19.png)
   
 3. Run the same scripts that we run for Az SWA but for Az VM: 
+```sql
+--- Create an SQL user, that point the the System Managed Identity
+-----------------------------------------------------------------
+	CREATE USER [VMWEU-TST-DAB] FROM EXTERNAL PROVIDER; 
+	GO
 
+--- Grant permissions to this SQL User
+---   For now only Read at level access
+-----------------------------------------------------------------
+	ALTER ROLE [db_datareader] ADD MEMBER [VMWEU-TST-DAB]; 
+	GO
+```
+
+4. Connect from SSMS in the VM using Integrated AAD
+
+  ![Test Connectivity](./Pictures/pic_23.png)
+   * Use "Microsoft Entra Managed Identity"
+   * Important: if "User Assigned Identity" is empty, thus SSMS will understand that must use **System** MI
+   
+   
 
 
 ### 5. How-To: DAB Configuration
 REFERENCE: [Tutorial: Add an Azure SQL database connection in Azure Static Web Apps (preview)](https://learn.microsoft.com/en-us/azure/static-web-apps/database-azure-sql?tabs=bash&pivots=static-web-apps-rest#get-database-connection-string-for-local-development)
 
-1. Crate folder/config file. By default these names are fixed
+Now, yes . . . We are ready to play with Data API Builder !!
+
+1. By default these names are fixed (/swa-db-connections/staticwebapp.database.config.json)
+ 
+ ```bash
+  swa db init --database-type mssql
+ ```
+   ![Test Connectivity](./Pictures/pic_26.png)
+   
+  This will create the Folder & File:
+  
+   ![Test Connectivity](./Pictures/pic_25.png)
+  
+
 
 2. Add DAB objects using CLI.
 (You can edit the JSON file manually too, but the CLI is a good to learn and provide a propper template that you can change later)
 
+```bash
+dab add Book -c "staticwebapp.database.config.json" --source dbo.books --permissions "anonymous:*"
+```
+   ![Test Connectivity](./Pictures/pic_26.png)
+   
+  The result file must be similar to this [V00.json](./JSON_Examples/V00.json)
 
 3. Modify Connection String
+
+  [Here](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/tutorial-windows-vm-access-sql#access-data) we have a sample ADO.NET with System Managed Identity
+  
+```bash
+ "Data Source=<AZURE-SQL-SERVERNAME>; Initial Catalog=<DATABASE>; Authentication=Active Directory Managed Identity; Encrypt=True"
+```  
+
+In my case will be:
+```bash
+ "Data Source=sqlsrv-weu-dwh-dab.database.windows.net; Initial Catalog=SQLDB-WEU-DWH01-DAB; Authentication=Active Directory Managed Identity; Encrypt=True"
+```  
+
+   ![Test Connectivity](./Pictures/pic_28.png)
+   
+Need pull the changes to GitHub, before run the next point
 
 4. Configure SWA / DB Connection 
 
