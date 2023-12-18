@@ -4,7 +4,7 @@
     "database-type": "mssql",
     "connection-string": "Data Source=sqlsrv-weu-dwh-dab.database.windows.net; Initial Catalog=SQLDB-WEU-DWH01-DAB; Authentication=Active Directory Managed Identity; Encrypt=True",
     "options": {
-      "set-session-context": false
+      "set-session-context": true
     }
   },
   "runtime": {
