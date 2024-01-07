@@ -1,32 +1,34 @@
  
 # How-To DAB (on SWA) using  AAD
 
-_How-to mount DAB (Data API Builder) on SWA (Static Web Application) using AAD authentication wiht Azure Database_
+_"How-to mount DAB (Data API Builder) on SWA (Static Web Application) using AAD authentication wiht Azure Database under Firewall"_
 
 
 ### Targets / Idea:
 1. Az SQL DB must be under firewall (no public IP)
-2. Microsoft  DAB must use AAD authentication with Az SQL DB
+2. Microsoft DAB must use AAD authentication with Az SQL DB
+3. Microsoft DAB will run on Azure Static Web Application (SWA)
 
 ![Idea architecture](./Pictures/pic_00.png)
 
 ### Pre-requisite I: Prepare a SWA (Static Web Application)
 1. Deploy a new SWA
+
    Reference: [Quickstart: Build your first static web app](https://github.com/staticwebdev/vanilla-basic/generate)
    
    ![Pre-requistie SWA](./Pictures/pic_02.png)
    
-2. Test connectivity 
+2. Test connectivity , you must see something like this:
 
 	![Test SWA connectivity](./Pictures/pic_01.png)
 
 
 ### Pre-requisite II: Prepare a Az SQL Database
-1. Deploy a Az Database 
+1. Deploy a Az SQL Database 
 
 	![New Database](./Pictures/pic_05.png)
 
-2. Be sure that is Integrated with AAD authentication
+2. Be sure that AAD authentication is enabled:
 
 	![AAD Authentication](./Pictures/pic_03.png)
 
@@ -36,19 +38,19 @@ _How-to mount DAB (Data API Builder) on SWA (Static Web Application) using AAD a
 
 4. Test connectivity. 
 
-   Very important that you access througth AAD authentication, and no SQL login / password:
+   Very important you neeed access througth AAD authentication, and no SQL login / password:
    
 	![Test Connectivity](./Pictures/pic_06.png)
 	![Test Connectivity](./Pictures/pic_07.png)
 	
 5. We need create tables and fill some data, you can use this script from DAB GitHub
 
-   Run this [T-SQL Script](https://github.com/Azure/data-api-builder/blob/main/samples/getting-started/azure-sql-db/library.azure-sql.sql) (Optional: and later [This](https://github.com/Azure/data-api-builder/blob/main/samples/getting-started/azure-sql-db/exercise/exercise-library.azure-sql.sql))
+   Run this [T-SQL Script](https://github.com/Azure/data-api-builder/blob/main/samples/getting-started/azure-sql-db/library.azure-sql.sql) (Optionaly: [This TSQL Script](https://github.com/Azure/data-api-builder/blob/main/samples/getting-started/azure-sql-db/exercise/exercise-library.azure-sql.sql))
    
 	![Tables to use with DAB](./Pictures/pic_08.png)
 
-### Pre-requisite II: Install DAB CLI
-To make more easy create the DAB config file, we can use use com DAB CLI commands to create a temmplate
+### Pre-requisite III: Install DAB CLI
+To make more easy create the DAB config file, we can use use DAB CLI commands to create a temmplate
 1. Install DAB CLI:   REFERENCE: [What is Data API builder? - Install](https://learn.microsoft.com/en-us/azure/data-api-builder/overview-to-data-api-builder?tabs=azure-sql#installation)
 
    Require Microsoft .NET SDK 6.0 [Download](https://dotnet.microsoft.com/en-us/download) (v7 is no LTS and v8 is too new)
@@ -61,7 +63,7 @@ To make more easy create the DAB config file, we can use use com DAB CLI command
 ## How-To
 
 ### 1. How-To: Networking configuration
-Because Az DB is doesn't have a public IP, we need interconnect DAB and Az DB using Private endpoints for both of them
+Because Az DB doesn't have a public IP, we need interconnect DAB and Az DB using 2 private endpoints in the same VNet
 
 ![Test Connectivity](./Pictures/pic_10.png)
 
@@ -76,12 +78,13 @@ Because Az DB is doesn't have a public IP, we need interconnect DAB and Az DB us
    
 
 2. Create Endpoint for Az SWA:
-	Use Private endpoint is not compatible with the Free plan
-	REFERENCE: [Configure private endpoint in Azure Static Web Apps](https://learn.microsoft.com/en-us/azure/static-web-apps/private-endpoint)
+
+	Important: Use Private endpoint is not compatible with the Az SWA Free plan
+	[REFERENCE: Configure private endpoint in Azure Static Web Apps](https://learn.microsoft.com/en-us/azure/static-web-apps/private-endpoint)
 
    ![Test Connectivity](./Pictures/pic_13.png)
 	
-	If your SKU plan is free, you will need upgrade to Standard Plan:
+	Thus, If your SKU plan is free, you will need upgrade to Standard Plan:
 
    ![Test Connectivity](./Pictures/pic_14.png)
    
@@ -98,14 +101,15 @@ Because Az DB is doesn't have a public IP, we need interconnect DAB and Az DB us
    ![Test Connectivity](./Pictures/pic_16.png)
    
 4. Check (again) SWA connectivity.
-	By default when you activate SWA's Private Endpoints, only will be accesible using Private IP, thus you will see something like this:
+
+   By default when you activate SWA's Private Endpoints, only will be accesible using Private IP. Thus, you would see something like this:
 	
    ![Test Connectivity](./Pictures/pic_20.png)	
    
    There are 2 solutions:
    
-   * Use a VPN + Private DNS resolution
-   * Create an Az VM, and connect to SWA using private IP (the DNS must be able to solve the name to the private DNS directly)
+   * Use a VPN + Private DNS resolution: this resolve the adress of the SWA to the private IP
+   * Create an Az VM in the same VNet: The Az VM will be able to solve the name to the private DNS directly
 
 	You must see this:
 	
@@ -118,7 +122,7 @@ Because Az DB is doesn't have a public IP, we need interconnect DAB and Az DB us
    ![System MI on SWA](./Pictures/pic_21.png)	
 
 
-2. Grant Read permission to SWA on Az SQL DB using T-SQL
+2. Grant Read permission to SWA AAD Identiy on Az SQL DB using T-SQL
 ```sql
 --- Create an SQL user, that point the the System Managed Identity
 -----------------------------------------------------------------
@@ -135,11 +139,12 @@ Because Az DB is doesn't have a public IP, we need interconnect DAB and Az DB us
 
 
 ### 4. How-To: Check Networking configuration (Optional)
-To check that the DB's private endpoint works and Database authentication with System management have sense, we can create an Azure VM in the same VNet that the Private Endpoints
+To check that the DB's private endpoint and Database authentication with System management works, we can create an Azure VM in the same VNet that the Private Endpoints
 
    ![Test Connectivity](./Pictures/pic_18.png)
 
-TIP: Is necesary access to this VM using AAD? No, but would be recomended for security reasons
+TIP: Is necesary login into this VM using AAD? No, but would be recomended for security reasons
+
 REFERENCE: [Tutorial: Use a Windows VM system-assigned managed identity to access Azure SQL](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/tutorial-windows-vm-access-sql)
 
 1. Create a VM and Install SSMS [Download](https://learn.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms?view=sql-server-ver16#download-ssms)
@@ -148,11 +153,13 @@ REFERENCE: [Tutorial: Use a Windows VM system-assigned managed identity to acces
   
   ![Test Connectivity](./Pictures/pic_17.png)
 
-2. Enable System Manage Identity
+2. Enable System Manage Identity for the Az VM:
 
   ![Test Connectivity](./Pictures/pic_19.png)
   
-3. Run the same scripts that we run for Az SWA but for Az VM: 
+3. Grant Read permision to Az VM AAD Identity on Az SQL DB Using T-SQL:
+
+   (the same idea that we run for Az SWA but for Az VM) 
 ```sql
 --- Create an SQL user, that point the the System Managed Identity
 -----------------------------------------------------------------
@@ -169,10 +176,10 @@ REFERENCE: [Tutorial: Use a Windows VM system-assigned managed identity to acces
 4. Connect from SSMS in the VM using Integrated AAD
 
   ![Test Connectivity](./Pictures/pic_23.png)
-   * Use "Microsoft Entra Managed Identity"
-   * Important: if "User Assigned Identity" is empty, thus SSMS will understand that must use **System** MI
+   * Authenticaion: "Microsoft Entra Managed Identity"
+   * Important: if "User Assigned Identity" is empty, SSMS will understand that must use **System** MI
    
-   
+      Currently there is a small bug if you want to use System Managed Identity with SSMS Registered Servers [Link](https://learn.microsoft.com/en-us/answers/questions/1464179/ssms-v19-2-56-2-small-bug-with-system-managed-iden)
 
 
 ### 5. How-To: DAB Configuration
@@ -180,7 +187,7 @@ REFERENCE: [Tutorial: Add an Azure SQL database connection in Azure Static Web A
 
 Now, yes . . . We are ready to play with Data API Builder !!
 
-1. By default these names are fixed (/swa-db-connections/staticwebapp.database.config.json)
+1. By default this path & name is fixed ([SWARoot:>] /swa-db-connections/staticwebapp.database.config.json)
  
  ```bash
   swa db init --database-type mssql
@@ -194,7 +201,7 @@ Now, yes . . . We are ready to play with Data API Builder !!
 
 
 2. Add DAB objects using CLI.
-(You can edit the JSON file manually too, but the CLI is a good to learn and provide a propper template that you can change later)
+(You can edit the JSON file manually too, but use the CLI DAB is good to learn and provide a propper template that you can change later)
 
 ```bash
 dab add Book -c "staticwebapp.database.config.json" --source dbo.books --permissions "anonymous:*"
@@ -218,18 +225,17 @@ In my case will be:
 
    ![Test Connectivity](./Pictures/pic_28.png)
    
-**Need pull the changes to GitHub, before run the next point**
+**Need push these changes to GitHub, before run the next point**
 
-   ![Test Connectivity](./Pictures/pic_29.png)
 
 4. Configure SWA > Database connection 
+   ![Test Connectivity](./Pictures/pic_29.png)
    ![Test Connectivity](./Pictures/pic_30.png)
 
 5. Test Rest API
 In my case the URL is:
 
 ```bash 
-https://wonderful-meadow-0e9203e03.4.azurestaticapps.net/data-api/Book
 https://wonderful-meadow-0e9203e03.4.azurestaticapps.net/data-api/api/Book
 ```
 
